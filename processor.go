@@ -15,14 +15,17 @@ type splitAttrsProcessor struct {
 }
 
 func (r *splitAttrsProcessor) Start(ctx context.Context, host component.Host) error {
+	r.logger.Info("Starting SplitAttributesProcessor")
 	return nil
 }
 
 func (r *splitAttrsProcessor) Shutdown(ctx context.Context) error {
+	r.logger.Info("Stopping SplitAttributesProcessor")
 	return nil
 }
 
 func (r splitAttrsProcessor) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
+	r.logger.Info("SplitAttributesProcessor is consuming metrics")
 	r.processMetrics(ctx, md)
 	return nil
 }
@@ -32,6 +35,7 @@ func (r splitAttrsProcessor) Capabilities() consumer.Capabilities {
 }
 
 func (r splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Metrics) {
+	r.logger.Info("SplitAttributesProcessor is processing metrics")
 	rms := md.ResourceMetrics()
 	for i := 0; i < rms.Len(); i++ {
 		metrics := md.ResourceMetrics().At(i)
