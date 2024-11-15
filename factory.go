@@ -5,10 +5,12 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
+	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
 var (
-	typeStr = component.MustNewType("splitattributesprocessor")
+	typeStr               = component.MustNewType("splitattributesprocessor")
+	processorCapabilities = consumer.Capabilities{MutatesData: true}
 )
 
 const (
@@ -31,7 +33,15 @@ func createMetricsProcessor(ctx context.Context, params processor.Settings, base
 		config:       cfg,
 		nextConsumer: consumer,
 	}
-	return mProcessor, nil
+	return processorhelper.NewMetrics(
+		ctx,
+		params,
+		baseCfg,
+		consumer,
+		mProcessor.processMetrics,
+		processorhelper.WithCapabilities(processorCapabilities),
+		processorhelper.WithShutdown(mProcessor.shutdown),
+	)
 }
 
 func NewFactory() processor.Factory {

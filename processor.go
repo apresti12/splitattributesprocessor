@@ -17,15 +17,14 @@ type splitAttrsProcessor struct {
 	nextConsumer consumer.Metrics
 }
 
-func (r *splitAttrsProcessor) Start(ctx context.Context, host component.Host) error {
-	r.host = host
-	ctx = context.Background()
-	ctx, r.cancel = context.WithCancel(ctx)
-	r.logger.Info("Started SplitAttributesProcessor")
-	return nil
-}
-
-func (r *splitAttrsProcessor) Shutdown(ctx context.Context) error {
+//	func (r *splitAttrsProcessor) Start(ctx context.Context, host component.Host) error {
+//		r.host = host
+//		ctx = context.Background()
+//		ctx, r.cancel = context.WithCancel(ctx)
+//		r.logger.Info("Started SplitAttributesProcessor")
+//		return nil
+//	}
+func (r *splitAttrsProcessor) shutdown(ctx context.Context) error {
 	if r.cancel != nil {
 		r.cancel()
 	}
@@ -33,17 +32,18 @@ func (r *splitAttrsProcessor) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (r *splitAttrsProcessor) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
-	r.logger.Info("SplitAttributesProcessor is consuming metrics")
-	r.processMetrics(ctx, md)
-	return nil
-}
+//
+//func (r *splitAttrsProcessor) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
+//	r.logger.Info("SplitAttributesProcessor is consuming metrics")
+//	r.processMetrics(ctx, md)
+//	return nil
+//}
+//
+//func (r *splitAttrsProcessor) Capabilities() consumer.Capabilities {
+//	return consumer.Capabilities{}
+//}
 
-func (r *splitAttrsProcessor) Capabilities() consumer.Capabilities {
-	return consumer.Capabilities{}
-}
-
-func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Metrics) {
+func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Metrics) (pmetric.Metrics, error) {
 	r.logger.Info("SplitAttributesProcessor is processing metrics")
 	rms := md.ResourceMetrics()
 	for i := 0; i < rms.Len(); i++ {
@@ -73,6 +73,7 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 			}
 		}
 	}
+	return md, nil
 }
 
 func splitHashes(concatenatedHashes string, delimiter string) []string {
