@@ -27,8 +27,9 @@ func createMetricsProcessor(ctx context.Context, params processor.Settings, base
 	logger := params.Logger
 	cfg := baseCfg.(*Config)
 	mProcessor := &splitAttrsProcessor{
-		logger: logger,
-		config: cfg,
+		logger:       logger,
+		config:       cfg,
+		nextConsumer: consumer,
 	}
 	return mProcessor, nil
 }

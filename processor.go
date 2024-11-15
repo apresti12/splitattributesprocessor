@@ -10,10 +10,11 @@ import (
 )
 
 type splitAttrsProcessor struct {
-	logger *zap.Logger
-	config *Config
-	host   component.Host
-	cancel context.CancelFunc
+	logger       *zap.Logger
+	config       *Config
+	host         component.Host
+	cancel       context.CancelFunc
+	nextConsumer consumer.Metrics
 }
 
 func (r *splitAttrsProcessor) Start(ctx context.Context, host component.Host) error {
