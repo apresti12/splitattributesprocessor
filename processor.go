@@ -12,29 +12,37 @@ import (
 type splitAttrsProcessor struct {
 	logger *zap.Logger
 	config *Config
+	host   component.Host
+	cancel context.CancelFunc
 }
 
 func (r *splitAttrsProcessor) Start(ctx context.Context, host component.Host) error {
-	r.logger.Info("Starting SplitAttributesProcessor")
+	r.host = host
+	ctx = context.Background()
+	ctx, r.cancel = context.WithCancel(ctx)
+	r.logger.Info("Started SplitAttributesProcessor")
 	return nil
 }
 
 func (r *splitAttrsProcessor) Shutdown(ctx context.Context) error {
+	if r.cancel != nil {
+		r.cancel()
+	}
 	r.logger.Info("Stopping SplitAttributesProcessor")
 	return nil
 }
 
-func (r splitAttrsProcessor) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
+func (r *splitAttrsProcessor) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
 	r.logger.Info("SplitAttributesProcessor is consuming metrics")
 	r.processMetrics(ctx, md)
 	return nil
 }
 
-func (r splitAttrsProcessor) Capabilities() consumer.Capabilities {
+func (r *splitAttrsProcessor) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{}
 }
 
-func (r splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Metrics) {
+func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Metrics) {
 	r.logger.Info("SplitAttributesProcessor is processing metrics")
 	rms := md.ResourceMetrics()
 	for i := 0; i < rms.Len(); i++ {
