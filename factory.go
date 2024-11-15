@@ -2,6 +2,7 @@ package splitAttributesProcessor
 
 import (
 	"context"
+	"fmt"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
@@ -18,6 +19,14 @@ const (
 	defaultAttributeKey = "hashes"
 )
 
+func NewFactory() processor.Factory {
+	return processor.NewFactory(
+		typeStr,
+		createDefaultConfig,
+		processor.WithMetrics(createMetricsProcessor, component.StabilityLevelAlpha),
+	)
+}
+
 func createDefaultConfig() component.Config {
 	return &Config{
 		Delimiter:    defaultDelimiter,
@@ -27,7 +36,10 @@ func createDefaultConfig() component.Config {
 
 func createMetricsProcessor(ctx context.Context, params processor.Settings, baseCfg component.Config, consumer consumer.Metrics) (processor.Metrics, error) {
 	logger := params.Logger
-	cfg := baseCfg.(*Config)
+	cfg, ok := baseCfg.(*Config)
+	if !ok {
+		return nil, fmt.Errorf("config parsing error")
+	}
 	mProcessor := &splitAttrsProcessor{
 		logger:       logger,
 		config:       cfg,
@@ -41,13 +53,5 @@ func createMetricsProcessor(ctx context.Context, params processor.Settings, base
 		mProcessor.processMetrics,
 		processorhelper.WithCapabilities(processorCapabilities),
 		processorhelper.WithShutdown(mProcessor.shutdown),
-	)
-}
-
-func NewFactory() processor.Factory {
-	return processor.NewFactory(
-		typeStr,
-		createDefaultConfig,
-		processor.WithMetrics(createMetricsProcessor, component.StabilityLevelAlpha),
 	)
 }
