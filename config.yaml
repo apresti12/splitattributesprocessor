@@ -1,0 +1,23 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+processors:
+  batch:
+  splitattributesprocessor:
+    delimiter: ";"
+    attribute_key: "hashes"
+exporters:
+  debug:
+    verbosity: detailed
+service:
+  pipelines:
+    metrics:
+      receivers:
+      - otlp
+      processors:
+      - batch
+      - splitattributesprocessor
+      exporters:
+      - debug
