@@ -63,10 +63,17 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 						newDp.Attributes().PutStr("hash", hash)
 						newDp.Attributes().Remove(r.config.AttributeKey)
 					}
-					innerMetric.Sum().DataPoints().RemoveIf(func(dp pmetric.NumberDataPoint) bool {
-						_, ok := dp.Attributes().Get(r.config.AttributeKey)
-						return ok
-					})
+					if innerMetric.Type() == pmetric.MetricTypeGauge {
+						innerMetric.Gauge().DataPoints().RemoveIf(func(dp pmetric.NumberDataPoint) bool {
+							_, ok := dp.Attributes().Get(r.config.AttributeKey)
+							return ok
+						})
+					} else {
+						innerMetric.Sum().DataPoints().RemoveIf(func(dp pmetric.NumberDataPoint) bool {
+							_, ok := dp.Attributes().Get(r.config.AttributeKey)
+							return ok
+						})
+					}
 				}
 			}
 		}
