@@ -41,7 +41,12 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 					metricLength = innerMetric.Sum().DataPoints().Len()
 				}
 				for l := 0; l < metricLength; l++ {
-					datapoint := innerMetric.Sum().DataPoints().At(l)
+					var datapoint pmetric.NumberDataPoint
+					if innerMetric.Type() == pmetric.MetricTypeGauge {
+						datapoint = innerMetric.Gauge().DataPoints().At(l)
+					} else {
+						datapoint = innerMetric.Sum().DataPoints().At(l)
+					}
 					concatenatedHashes, ok := datapoint.Attributes().Get(r.config.AttributeKey)
 					if !ok {
 						continue
