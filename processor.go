@@ -53,7 +53,12 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 					}
 					hashList := splitHashes(concatenatedHashes.Str(), r.config.Delimiter)
 					for _, hash := range hashList {
-						newDp := innerMetric.Sum().DataPoints().AppendEmpty()
+						var newDp pmetric.NumberDataPoint
+						if innerMetric.Type() == pmetric.MetricTypeGauge {
+							newDp = innerMetric.Gauge().DataPoints().AppendEmpty()
+						} else {
+							newDp = innerMetric.Sum().DataPoints().AppendEmpty()
+						}
 						datapoint.CopyTo(newDp)
 						newDp.Attributes().PutStr("hash", hash)
 						newDp.Attributes().Remove(r.config.AttributeKey)
