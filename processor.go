@@ -2,7 +2,6 @@ package splitAttributesProcessor
 
 import (
 	"context"
-	"fmt"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -35,10 +34,6 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 			scopeMetrics := metrics.ScopeMetrics().At(j)
 			for k := 0; k < scopeMetrics.Metrics().Len(); k++ {
 				innerMetric := scopeMetrics.Metrics().At(k)
-				if innerMetric.Type() == pmetric.MetricTypeGauge {
-					fmt.Println("It is a gauge, continue")
-					continue
-				}
 				for l := 0; l < innerMetric.Sum().DataPoints().Len(); l++ {
 					datapoint := innerMetric.Sum().DataPoints().At(l)
 					concatenatedHashes, ok := datapoint.Attributes().Get(r.config.AttributeKey)
@@ -61,6 +56,11 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 		}
 	}
 	return md, nil
+}
+
+func handleSplit(HashString string, delimiter string) {
+
+	return
 }
 
 func splitHashes(concatenatedHashes string, delimiter string) []string {
