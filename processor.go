@@ -2,7 +2,6 @@ package splitAttributesProcessor
 
 import (
 	"context"
-	"fmt"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -35,24 +34,28 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 			scopeMetrics := metrics.ScopeMetrics().At(j)
 			for k := 0; k < scopeMetrics.Metrics().Len(); k++ {
 				innerMetric := scopeMetrics.Metrics().At(k)
-				if innerMetric.Type() == pmetric.MetricTypeGauge {
-					fmt.Println("It is a gauge, continue")
-					continue
+
+				var innerMetricDataPoints pmetric.NumberDataPointSlice
+				switch {
+				case innerMetric.Type() == pmetric.MetricTypeGauge:
+					innerMetricDataPoints = innerMetric.Gauge().DataPoints()
+				default:
+					innerMetricDataPoints = innerMetric.Sum().DataPoints()
 				}
-				for l := 0; l < innerMetric.Sum().DataPoints().Len(); l++ {
-					datapoint := innerMetric.Sum().DataPoints().At(l)
+				for l := 0; l < innerMetricDataPoints.Len(); l++ {
+					datapoint := innerMetricDataPoints.At(l)
 					concatenatedHashes, ok := datapoint.Attributes().Get(r.config.AttributeKey)
 					if !ok {
 						continue
 					}
 					hashList := splitHashes(concatenatedHashes.Str(), r.config.Delimiter)
 					for _, hash := range hashList {
-						newDp := innerMetric.Sum().DataPoints().AppendEmpty()
+						newDp := innerMetricDataPoints.AppendEmpty()
 						datapoint.CopyTo(newDp)
 						newDp.Attributes().PutStr("hash", hash)
 						newDp.Attributes().Remove(r.config.AttributeKey)
 					}
-					innerMetric.Sum().DataPoints().RemoveIf(func(dp pmetric.NumberDataPoint) bool {
+					innerMetricDataPoints.RemoveIf(func(dp pmetric.NumberDataPoint) bool {
 						_, ok := dp.Attributes().Get(r.config.AttributeKey)
 						return ok
 					})
@@ -61,6 +64,11 @@ func (r *splitAttrsProcessor) processMetrics(ctx context.Context, md pmetric.Met
 		}
 	}
 	return md, nil
+}
+
+func handleSplit(HashString string, delimiter string) {
+
+	return
 }
 
 func splitHashes(concatenatedHashes string, delimiter string) []string {
